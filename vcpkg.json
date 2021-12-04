@@ -1,0 +1,12 @@
+{
+  "name": "renamehelper",
+  "version-string": "1.0.0",
+  "description": "Automatic function renamer for reverse-engineering Skyrim Special Edition",
+  "homepage": "https://github.com/Exit-9B/RenameHelper",
+  "license": "MIT",
+  "dependencies": [
+    "boost-stl-interfaces",
+    "rsm-binary-io",
+    "spdlog"
+  ]
+}
