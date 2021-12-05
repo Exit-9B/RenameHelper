@@ -42,6 +42,41 @@ void RenameHelper::ReadConsoleCommands()
 	ReadCommands(consoleFuncs.get(), " ", "ConsoleFunc"sv);
 }
 
+void RenameHelper::ReadSettings()
+{
+	auto gameSettings = RE::GameSettingCollection::GetSingleton();
+	for (auto& item : gameSettings->settings) {
+		auto name = item.first;
+		auto setting = item.second;
+
+		NameAddr(
+			reinterpret_cast<std::uintptr_t>(setting),
+			fmt::format("gGameSetting_{}"sv, name));
+	}
+
+	auto iniPrefSettings = RE::INIPrefSettingCollection::GetSingleton();
+	for (auto& setting : iniPrefSettings->settings) {
+		std::string name{ setting->name };
+		std::replace(name.begin(), name.end(), ':', '_');
+		std::replace(name.begin(), name.end(), ' ', '_');
+
+		NameAddr(
+			reinterpret_cast<std::uintptr_t>(setting),
+			fmt::format("gIniPref_{}"sv, name));
+	}
+
+	auto iniSettings = RE::INISettingCollection::GetSingleton();
+	for (auto& setting : iniSettings->settings) {
+		std::string name{ setting->name };
+		std::replace(name.begin(), name.end(), ':', '_');
+		std::replace(name.begin(), name.end(), ' ', '_');
+
+		NameAddr(
+			reinterpret_cast<std::uintptr_t>(setting),
+			fmt::format("gIni_{}"sv, name));
+	}
+}
+
 void RenameHelper::ReadCommands(
 	RE::ScriptCommand* a_commands,
 	const char* a_maxName,
@@ -63,6 +98,21 @@ void RenameHelper::ReadCommands(
 	}
 }
 
+void RenameHelper::NameAddr(std::uintptr_t a_address, std::string_view a_name)
+{
+	auto base = REL::Module::get().base();
+	auto textw = REL::Module::get().segment(REL::Segment::Name::textw);
+
+	if (a_address < base || a_address > textw.address() + textw.size()) {
+		return;
+	}
+
+	auto offset = a_address - base;
+	auto ida_address = 0x140000000 + offset;
+
+	_fs << fmt::format("NameAddr({0:#X}, '{1}_{0:X}')"sv, ida_address, a_name) << std::endl;
+}
+
 void RenameHelper::RenamePapyrusFunc(
 	[[maybe_unused]] RE::BSScript::Internal::VirtualMachine* a_vm,
 	RE::BSScript::NF_util::NativeFunctionBase* a_nativeFunc)
@@ -74,18 +124,5 @@ void RenameHelper::RenamePapyrusFunc(
 	auto rh = GetSingleton();
 	rh->NameAddr(funcPtr, fmt::format("papyrus::{}::{}"sv, typeName, funcName));
 
-	_RegisterPapyrusFunc(a_vm, a_nativeFunc);
-}
-
-void RenameHelper::NameAddr(std::uintptr_t a_address, std::string_view a_name)
-{
-	auto text = REL::Module::get().segment(REL::Segment::Name::textw);
-	if (a_address > text.address() + text.size()) {
-		return;
-	}
-
-	auto offset = REL::Relocation<std::uintptr_t>(a_address).offset();
-	auto ida_address = 0x140000000 + offset;
-
-	_fs << fmt::format("NameAddr({0:#X}, '{1}_{0:X}')"sv, ida_address, a_name) << std::endl;
+	return _RegisterPapyrusFunc(a_vm, a_nativeFunc);
 }

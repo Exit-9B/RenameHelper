@@ -17,6 +17,8 @@ public:
 
 	void ReadConsoleCommands();
 
+	void ReadSettings();
+
 private:
 	RenameHelper();
 

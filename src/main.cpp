@@ -51,6 +51,7 @@ extern "C" DLLEXPORT bool SKSEAPI SKSEPlugin_Load(const SKSE::LoadInterface* a_s
 	auto renameHelper = RenameHelper::GetSingleton();
 	renameHelper->InstallHooks();
 	renameHelper->ReadConsoleCommands();
+	renameHelper->ReadSettings();
 
 	spdlog::default_logger()->flush();
 
