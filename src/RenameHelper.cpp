@@ -3,7 +3,7 @@
 
 RenameHelper::RenameHelper()
 {
-	_fs <<
+	_py <<
 		"def NameAddr(ea, name) :\n"
 		"    idc.set_name(ea, name, idc.SN_AUTO);\n"
 		"\n"
@@ -16,7 +16,7 @@ RenameHelper::RenameHelper()
 
 RenameHelper::~RenameHelper()
 {
-	_fs <<
+	_py <<
 		"\n"
 		"print('Finished import')\n";
 }
@@ -110,7 +110,8 @@ void RenameHelper::NameAddr(std::uintptr_t a_address, std::string_view a_name)
 	auto offset = a_address - base;
 	auto ida_address = 0x140000000 + offset;
 
-	_fs << fmt::format("NameAddr({0:#X}, '{1}_{0:X}')"sv, ida_address, a_name) << std::endl;
+	_py << fmt::format("NameAddr({0:#X}, '{1}_{0:X}')"sv, ida_address, a_name) << std::endl;
+	_txt << fmt::format("{0:X}\t{1}_{0:X}\t"sv, ida_address, a_name) << std::endl;
 }
 
 void RenameHelper::RenamePapyrusFunc(

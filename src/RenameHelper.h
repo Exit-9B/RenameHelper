@@ -35,5 +35,6 @@ private:
 
 	inline static REL::Relocation<decltype(RenamePapyrusFunc)> _RegisterPapyrusFunc;
 
-	std::ofstream _fs{ "IDARename.py"s };
+	std::ofstream _py{ "IDARename.py"s };
+	std::ofstream _txt{ "idanames.txt"s };
 };
