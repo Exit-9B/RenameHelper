@@ -4,6 +4,5 @@ set(SOURCES ${SOURCES}
     src/PCH.h
     src/RenameHelper.cpp
     src/RenameHelper.h
-    src/ScriptCommand.h
     src/main.cpp
 )

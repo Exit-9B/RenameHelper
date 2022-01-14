@@ -1,7 +1,5 @@
 #pragma once
 
-#include "ScriptCommand.h"
-
 class RenameHelper
 {
 public:
@@ -23,7 +21,7 @@ private:
 	RenameHelper();
 
 	void ReadCommands(
-		RE::ScriptCommand* a_commands,
+		RE::SCRIPT_FUNCTION* a_commands,
 		const char* a_maxName,
 		std::string_view a_prefix);
 

@@ -1,5 +1,4 @@
 #include "RenameHelper.h"
-#include "Offsets.h"
 
 RenameHelper::RenameHelper()
 {
@@ -29,17 +28,18 @@ auto RenameHelper::GetSingleton() -> RenameHelper*
 
 void RenameHelper::InstallHooks()
 {
-	REL::Relocation<std::uintptr_t> vtbl{ Offset::BSScript::Internal::VirtualMachine::Vtbl };
+	// BSScript::Internal::VirtualMachine::vtbl
+	REL::Relocation<std::uintptr_t> vtbl{ REL::ID(252631) };
 	_RegisterPapyrusFunc = vtbl.write_vfunc(24, RenamePapyrusFunc);
 }
 
 void RenameHelper::ReadConsoleCommands()
 {
-	REL::Relocation<RE::ScriptCommand*> gameFuncs{ Offset::GameFuncs };
-	ReadCommands(gameFuncs.get(), "ADD NEW FUNCTIONS BEFORE THIS ONE!!!", "GameFunc"sv);
+	auto gameFuncs = RE::SCRIPT_FUNCTION::GetFirstScriptCommand();
+	ReadCommands(gameFuncs, "ADD NEW FUNCTIONS BEFORE THIS ONE!!!", "GameFunc"sv);
 
-	REL::Relocation<RE::ScriptCommand*> consoleFuncs{ Offset::ConsoleFuncs };
-	ReadCommands(consoleFuncs.get(), " ", "ConsoleFunc"sv);
+	auto consoleFuncs = RE::SCRIPT_FUNCTION::GetFirstConsoleCommand();
+	ReadCommands(consoleFuncs, " ", "ConsoleFunc"sv);
 }
 
 void RenameHelper::ReadSettings()
@@ -78,22 +78,29 @@ void RenameHelper::ReadSettings()
 }
 
 void RenameHelper::ReadCommands(
-	RE::ScriptCommand* a_commands,
+	RE::SCRIPT_FUNCTION* a_commands,
 	const char* a_maxName,
 	std::string_view a_prefix)
 {
-	for (auto command = a_commands; command->name && strcmp(command->name, a_maxName); ++command) {
-		auto funcName = command->name;
+	for (auto command = a_commands;
+		command->functionName && strcmp(command->functionName, a_maxName);
+		++command) {
+
+		auto funcName = command->functionName;
 		while (*funcName == ' ') {
 			funcName++;
 		}
 
-		if (auto func = command->func) {
-			NameAddr(func, fmt::format("{}::{}::{}"sv, a_prefix, "native"sv, funcName));
+		if (auto conditionFunction = command->conditionFunction) {
+			NameAddr(
+				reinterpret_cast<std::uintptr_t>(conditionFunction),
+				fmt::format("{}::{}::{}"sv, a_prefix, "native"sv, funcName));
 		}
 
-		if (auto handler = command->handler) {
-			NameAddr(handler, fmt::format("{}::{}::{}"sv, a_prefix, "handler"sv, funcName));
+		if (auto executeFunction = command->executeFunction) {
+			NameAddr(
+				reinterpret_cast<std::uintptr_t>(executeFunction),
+				fmt::format("{}::{}::{}"sv, a_prefix, "handler"sv, funcName));
 		}
 	}
 }
